@@ -50,7 +50,6 @@ export function useApi<T>(
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${instance}`,
-              "ngrok-skip-browser-warning": "1",
             },
             body:
               method !== "GET"

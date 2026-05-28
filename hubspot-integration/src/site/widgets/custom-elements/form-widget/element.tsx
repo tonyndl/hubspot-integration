@@ -83,12 +83,11 @@ const HubSpotForm: FC<Props> = ({
     const ctx = collectContext();
     try {
       const base =
-        backendurl || "https://decorated-morbidity-reclusive.ngrok-free.dev";
+        backendurl || "https://hubspot-integration-production-d45f.up.railway.app";
       const res = await fetch(`${base}/api/form/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "1",
         },
         body: JSON.stringify({
           email: values.email,

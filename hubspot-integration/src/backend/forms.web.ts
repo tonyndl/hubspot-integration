@@ -18,7 +18,7 @@
  *   });
  */
 
-const BACKEND_URL = "https://decorated-morbidity-reclusive.ngrok-free.dev";
+const BACKEND_URL = "https://hubspot-integration-production-d45f.up.railway.app";
 const WIX_SITE_ID = "56993fb3-9fa1-4615-9387-8180d9c04a7e";
 const APP_SECRET =
   "21a54a2709016cf19eae6acd86958e84b21f791979a259501d3806eac9b23b53";

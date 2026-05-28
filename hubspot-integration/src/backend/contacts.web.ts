@@ -3,7 +3,7 @@
  * Posts to the backend which enqueues the HubSpot sync job.
  */
 
-const BACKEND_URL = "https://decorated-morbidity-reclusive.ngrok-free.dev";
+const BACKEND_URL = "https://hubspot-integration-production-d45f.up.railway.app";
 
 // metaSiteId from .wix/app.config.json — what getSiteInfo().siteId returns
 const WIX_SITE_ID = "56993fb3-9fa1-4615-9387-8180d9c04a7e";
