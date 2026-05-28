@@ -47,6 +47,12 @@ const EMPTY_ROW: FieldMappingRow = {
   transform: "none",
 };
 
+const DEFAULT_MAPPINGS: FieldMappingRow[] = [
+  { wixField: "info.name.first",      hubspotProperty: "firstname", syncDirection: "bidirectional", transform: "none" },
+  { wixField: "info.name.last",       hubspotProperty: "lastname",  syncDirection: "bidirectional", transform: "none" },
+  { wixField: "info.emails[0].email", hubspotProperty: "email",     syncDirection: "bidirectional", transform: "none" },
+];
+
 const WIX_TO_HUBSPOT: Record<string, string> = {
   "info.name.first": "firstname",
   "info.name.last": "lastname",
@@ -76,7 +82,11 @@ export function FieldMappingTable() {
       ),
     ]);
 
-    if (mRes.status === "fulfilled") setMappings(mRes.value.mappings);
+    if (mRes.status === "fulfilled") {
+      const loaded = mRes.value.mappings;
+      setMappings(loaded.length > 0 ? loaded : DEFAULT_MAPPINGS);
+      if (loaded.length === 0) setDirty(true);
+    }
     if (wRes.status === "fulfilled") setWixFields(wRes.value.fields);
     else setError("Could not load Wix fields.");
     setLoading(false);
