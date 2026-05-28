@@ -34,7 +34,7 @@ async function getRecentlySyncedIds(
     .eq("last_sync_source", source)
     .gte("last_synced_at", since)
     .in(idField, ids);
-  return new Set((data ?? []).map((r) => r[idField] as string));
+  return new Set((data ?? []).map((r) => (r as Record<string, string>)[idField]));
 }
 
 // Returns the set of IDs that already have a mapping (i.e. previously synced contacts).
@@ -50,7 +50,7 @@ async function getMappedIds(
     .select(idField)
     .eq("wix_site_id", wixSiteId)
     .in(idField, ids);
-  return new Set((data ?? []).map((r) => r[idField] as string));
+  return new Set((data ?? []).map((r) => (r as Record<string, string>)[idField]));
 }
 
 // ── HubSpot → Wix ─────────────────────────────────────────────────────────────
