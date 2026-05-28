@@ -84,8 +84,11 @@ export function FieldMappingTable() {
 
     if (mRes.status === "fulfilled") {
       const loaded = mRes.value.mappings;
-      setMappings(loaded.length > 0 ? loaded : DEFAULT_MAPPINGS);
-      if (loaded.length === 0) setDirty(true);
+      const savedWixFields = new Set(loaded.map((m) => m.wixField));
+      const missing = DEFAULT_MAPPINGS.filter((d) => !savedWixFields.has(d.wixField));
+      const merged = [...loaded, ...missing];
+      setMappings(merged);
+      if (missing.length > 0) setDirty(true);
     }
     if (wRes.status === "fulfilled") setWixFields(wRes.value.fields);
     else setError("Could not load Wix fields.");
