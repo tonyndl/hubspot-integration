@@ -1,0 +1,26 @@
+{
+  "$schema": "https://dev.wix.com/wix-cli/schemas/custom-element.json",
+  "id": "84b877f8-9f5a-49cc-a468-7dcb7de81f3f",
+  "name": "form",
+  "width": {
+    "defaultWidth": 450,
+    "allowStretch": true
+  },
+  "height": {
+    "defaultHeight": 250
+  },
+  "installation": {
+    "autoAddToSite": true
+  },
+  "behaviors": {
+    "dashboard": {
+      "dashboardPageComponentId": "ac631b2c-6478-4d99-abe2-23cfd5f07d41"
+    }
+  },
+  "presets": [
+    {
+      "id": "089435c9-a8c9-480d-8dfc-84889542c6e9",
+      "thumbnailUrl": "../../../../assets/form-widget/thumbnail.png"
+    }
+  ]
+}

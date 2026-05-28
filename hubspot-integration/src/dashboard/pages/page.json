@@ -1,0 +1,5 @@
+{
+  "$schema": "https://dev.wix.com/wix-cli/schemas/dashboard-page.json",
+  "id": "ac631b2c-6478-4d99-abe2-23cfd5f07d41",
+  "title": "hubspot-integration"
+}
