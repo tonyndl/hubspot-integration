@@ -133,11 +133,14 @@ export async function batchUpsertHubSpotContacts(
     }>;
   }>("/crm/v3/objects/contacts/batch/upsert", { inputs });
 
-  return res.data.results.map((r, i) => ({
-    email: contacts[i]?.email ?? r.properties.email ?? "",
-    id: r.id,
-    isNew: r.new,
-  }));
+  // HubSpot does not guarantee result order — match by email
+  const byEmail = new Map(
+    res.data.results.map((r) => [(r.properties.email ?? "").toLowerCase(), r]),
+  );
+  return contacts.map((c) => {
+    const r = byEmail.get(c.email.toLowerCase());
+    return { email: c.email, id: r?.id ?? "", isNew: r?.new ?? false };
+  });
 }
 
 // Update specific properties of an existing HubSpot contact
