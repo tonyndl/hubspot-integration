@@ -29,25 +29,39 @@ export interface WixContactInput {
   extendedFields?: Record<string, unknown>;
 }
 
-// Create a new Wix contact
+// Create a new Wix contact — if a 409 (duplicate email) is returned, fall back
+// to finding the existing contact and updating it instead.
 export async function createWixContact(
   client: AxiosInstance,
   input: WixContactInput,
   syncId: string,
 ): Promise<string> {
   const body = buildWixContactBody(input);
-  // Embed sync correlation ID so our own webhook handler can identify and skip it
   body.info.extendedFields = {
     items: { ...body.info.extendedFields?.items, hubspot_sync_id: syncId },
   };
 
-  const res = await client.post<{ contact: WixContact }>(
-    "/contacts/v4/contacts",
-    body,
-  );
-  const contactId = res.data.contact.id;
-  logger.debug({ contactId, syncId }, "Wix contact created");
-  return contactId;
+  try {
+    const res = await client.post<{ contact: WixContact }>(
+      "/contacts/v4/contacts",
+      body,
+    );
+    const contactId = res.data.contact.id;
+    logger.debug({ contactId, syncId }, "Wix contact created");
+    return contactId;
+  } catch (err: unknown) {
+    const status = (err as { response?: { status?: number } }).response?.status;
+    if (status === 409) {
+      // Contact with this email already exists — look it up and update
+      logger.debug({ email: input.email, syncId }, "Wix 409 on create — falling back to update");
+      const existing = await findWixContactByEmail(client, input.email);
+      if (existing) {
+        await updateWixContact(client, existing.id, input, syncId, existing.revision);
+        return existing.id;
+      }
+    }
+    throw err;
+  }
 }
 
 // Update an existing Wix contact
