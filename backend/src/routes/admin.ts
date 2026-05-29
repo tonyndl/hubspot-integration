@@ -96,6 +96,33 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return reply.send({ ok: true, ...result });
   });
 
+  // GET /api/admin/test-sync — run full HubSpot→Wix sync synchronously and return result
+  fastify.get("/api/admin/test-sync", async (_request, reply) => {
+    const { config } = await import("../config/index.js");
+    const { syncHubSpotContactToWix } = await import("../services/sync/engine.js");
+    const wixSiteId = config.WIX_META_SITE_ID ?? "unknown";
+
+    try {
+      await syncHubSpotContactToWix(
+        wixSiteId,
+        {
+          contactId: `diag-${Date.now()}`,
+          email: "diag-sync-test@example.com",
+          properties: {
+            email: "diag-sync-test@example.com",
+            firstname: "DiagSync",
+            lastname: "Test",
+          },
+        },
+        "contact_created",
+      );
+      return reply.send({ ok: true, message: "Sync completed — check Wix CRM for diag-sync-test@example.com" });
+    } catch (err: unknown) {
+      const e = err as { message?: string; cause?: unknown };
+      return reply.send({ ok: false, error: e.message, cause: String(e.cause) });
+    }
+  });
+
   // GET /api/admin/test-wix — directly test Wix API auth and contact write
   fastify.get("/api/admin/test-wix", async (_request, reply) => {
     const { createWixClient } = await import("../services/wix/client.js");
