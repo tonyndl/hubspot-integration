@@ -66,28 +66,38 @@ const DashboardPage: React.FC = () => {
               })}
             </TabList>
 
-            {activeTab === "connection" && (
+            {/* Always mount connected tabs — hiding with CSS preserves state across tab switches */}
+            <div style={{ display: activeTab === "connection" ? "block" : "none" }}>
               <ConnectHubspot
                 onConnectionChange={(connected) => {
                   setIsConnected(connected);
                   if (!connected) setActiveTab("connection");
                 }}
               />
-            )}
-            {activeTab === "mapping" && isConnected && <FieldMappingTable />}
-            {activeTab === "contacts" && isConnected && <ContactsView />}
-            {activeTab === "activity" && isConnected && <SyncStatus />}
-            {(["mapping", "contacts", "activity"] as Tab[]).includes(
-              activeTab,
-            ) &&
-              !isConnected && (
+            </div>
+
+            {isConnected ? (
+              <>
+                <div style={{ display: activeTab === "mapping" ? "block" : "none" }}>
+                  <FieldMappingTable />
+                </div>
+                <div style={{ display: activeTab === "contacts" ? "block" : "none" }}>
+                  <ContactsView />
+                </div>
+                <div style={{ display: activeTab === "activity" ? "block" : "none" }}>
+                  <SyncStatus />
+                </div>
+              </>
+            ) : (
+              (["mapping", "contacts", "activity"] as Tab[]).includes(activeTab) && (
                 <Alert variant="info">
                   <Text size="small" tagName="span">
                     Connect your HubSpot account on the{" "}
                     <strong>Connection</strong> tab to unlock this section.
                   </Text>
                 </Alert>
-              )}
+              )
+            )}
           </div>
         </Page.Content>
       </Page>

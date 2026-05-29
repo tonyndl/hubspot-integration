@@ -44,13 +44,19 @@ function extractWixSiteId(instance: string): string {
   let siteId = decoded.metaSiteId ?? decoded.siteId ?? decoded.instanceId;
   if (!siteId) throw new Error("No siteId in token payload");
 
-  // If the JWT only yielded the app-installation instanceId, map it to the canonical metaSiteId.
-  // This keeps all DB rows under the same key that getSiteInfo().siteId and the Wix API use.
+  // Map known instance ID → canonical meta site ID
   if (
     config.WIX_INSTANCE_ID &&
     config.WIX_META_SITE_ID &&
     siteId === config.WIX_INSTANCE_ID
   ) {
+    siteId = config.WIX_META_SITE_ID;
+  }
+
+  // If WIX_META_SITE_ID is configured and the JWT didn't carry the metaSiteId
+  // explicitly, normalise to it. Wix JWTs sometimes only carry instanceId, which
+  // changes across refreshes and breaks DB key consistency.
+  if (config.WIX_META_SITE_ID && siteId !== config.WIX_META_SITE_ID) {
     siteId = config.WIX_META_SITE_ID;
   }
 
