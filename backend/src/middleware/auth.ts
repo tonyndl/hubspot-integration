@@ -53,13 +53,6 @@ function extractWixSiteId(instance: string): string {
     siteId = config.WIX_META_SITE_ID;
   }
 
-  // If WIX_META_SITE_ID is configured and the JWT didn't carry the metaSiteId
-  // explicitly, normalise to it. Wix JWTs sometimes only carry instanceId, which
-  // changes across refreshes and breaks DB key consistency.
-  if (config.WIX_META_SITE_ID && siteId !== config.WIX_META_SITE_ID) {
-    siteId = config.WIX_META_SITE_ID;
-  }
-
   // Full HMAC verification in production only
   if (config.NODE_ENV === "production" && parts.length === 2) {
     const [signatureB64, payloadB64] = parts;
