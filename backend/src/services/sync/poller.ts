@@ -66,6 +66,11 @@ async function pollHubSpot(wixSiteId: string): Promise<void> {
     return;
   }
 
+  logger.info(
+    { wixSiteId, count: contacts.length, contacts: contacts.map(c => ({ id: c.id, email: c.properties.email, properties: c.properties })) },
+    "HubSpot poll: raw contacts found",
+  );
+
   // Skip contacts that were recently synced FROM Wix (they're just our own echo)
   const hsIds = contacts.map((c) => c.id);
   const [recentFromWix, mappedHsIds] = await Promise.all([
@@ -126,6 +131,11 @@ async function pollWix(wixSiteId: string): Promise<void> {
     wixWatermarks.set(wixSiteId, pollStart);
     return;
   }
+
+  logger.info(
+    { wixSiteId, count: contacts.length, contacts: contacts.map(c => ({ id: c.id, email: c.primaryEmail?.email, name: c.info?.name, phones: c.info?.phones?.items, company: c.info?.company })) },
+    "Wix poll: raw contacts found",
+  );
 
   // Skip contacts that were recently synced FROM HubSpot (they're just our own echo)
   const wixIds = contacts.map((c) => c.id);

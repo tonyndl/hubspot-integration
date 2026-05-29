@@ -259,7 +259,7 @@ export async function syncWixContactToHubSpot(
   }
 
   logger.info(
-    { wixSiteId, wixContactId: wixContact.contactId, syncId, eventType },
+    { wixSiteId, wixContactId: wixContact.contactId, syncId, eventType, payload: wixContact },
     "Syncing Wix → HubSpot",
   );
 
@@ -267,6 +267,11 @@ export async function syncWixContactToHubSpot(
     const hsClient = createHubSpotClient(wixSiteId);
     const mappings = await getActiveMappings(wixSiteId);
     const hsProps = mapWixToHubSpot(wixContact, mappings);
+
+    logger.info(
+      { wixSiteId, wixContactId: wixContact.contactId, mappedProperties: hsProps },
+      "Wix → HubSpot mapped properties",
+    );
 
     const { id: hubspotContactId } = await upsertHubSpotContact(
       hsClient,
@@ -365,7 +370,7 @@ export async function syncHubSpotContactToWix(
   }
 
   logger.info(
-    { wixSiteId, hubspotContactId: hsPayload.contactId, syncId, eventType },
+    { wixSiteId, hubspotContactId: hsPayload.contactId, syncId, eventType, payload: hsPayload },
     "Syncing HubSpot → Wix",
   );
 
@@ -373,6 +378,11 @@ export async function syncHubSpotContactToWix(
     const wixClient = createWixClient(wixSiteId);
     const mappings = await getActiveMappings(wixSiteId);
     const wixInput = mapHubSpotToWix(hsPayload.properties, mappings);
+
+    logger.info(
+      { wixSiteId, hubspotContactId: hsPayload.contactId, mappedInput: wixInput },
+      "HubSpot → Wix mapped input",
+    );
     wixInput.email = hsPayload.email;
 
     // Check if we already have a mapping for this HubSpot contact

@@ -94,6 +94,16 @@ export function SyncStatus() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const CLEAR_KEY = "syncActivity_clearedBefore";
+  const [clearedBefore, setClearedBefore] = useState<string | null>(
+    () => localStorage.getItem(CLEAR_KEY),
+  );
+
+  const clearActivity = () => {
+    const now = new Date().toISOString();
+    localStorage.setItem(CLEAR_KEY, now);
+    setClearedBefore(now);
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -181,14 +191,25 @@ export function SyncStatus() {
                 auto-refreshes every 30s
               </Text>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={loadData}
-              disabled={loading}
-            >
-              {loading ? <Spinner size={13} /> : "↻"} Refresh
-            </Button>
+            <Row style={{ gap: 8 }}>
+              {(clearedBefore || events.length > 0) && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={clearActivity}
+                >
+                  ✕ Clear
+                </Button>
+              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={loadData}
+                disabled={loading}
+              >
+                {loading ? <Spinner size={13} /> : "↻"} Refresh
+              </Button>
+            </Row>
           </Row>
         </div>
 
@@ -198,19 +219,28 @@ export function SyncStatus() {
           </div>
         )}
 
-        {events.length === 0 ? (
-          <EmptyState>
-            <EmptyStateIcon>
-              <Activity size="36" />
-            </EmptyStateIcon>
-            <Text size="small" weight="bold" tagName="p">
-              No sync events yet
-            </Text>
-            <Text size="small" secondary tagName="p">
-              Update a Wix contact or HubSpot record to see activity here.
-            </Text>
-          </EmptyState>
-        ) : (
+        {(() => {
+          const visible = clearedBefore
+            ? events.filter((e) => e.created_at > clearedBefore)
+            : events;
+          if (visible.length === 0) {
+            return (
+              <EmptyState>
+                <EmptyStateIcon>
+                  <Activity size="36" />
+                </EmptyStateIcon>
+                <Text size="small" weight="bold" tagName="p">
+                  {clearedBefore ? "Activity cleared" : "No sync events yet"}
+                </Text>
+                <Text size="small" secondary tagName="p">
+                  {clearedBefore
+                    ? "New sync events will appear here automatically."
+                    : "Update a Wix contact or HubSpot record to see activity here."}
+                </Text>
+              </EmptyState>
+            );
+          }
+          return (
           <div style={{ overflowX: "auto" }}>
             <Table>
               <thead>
@@ -223,7 +253,7 @@ export function SyncStatus() {
                 </tr>
               </thead>
               <tbody>
-                {events.map((ev) => (
+                {visible.map((ev) => (
                   <Tr key={ev.id}>
                     <Td>
                       <Text size="small" weight="bold" tagName="span">
@@ -285,7 +315,8 @@ export function SyncStatus() {
               </tbody>
             </Table>
           </div>
-        )}
+          );
+        })()}
       </Card>
 
       {/* Form submissions */}

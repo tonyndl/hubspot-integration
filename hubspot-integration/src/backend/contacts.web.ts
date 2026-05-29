@@ -6,7 +6,7 @@
 const BACKEND_URL = "https://hubspot-integration-production-d45f.up.railway.app";
 
 // metaSiteId from .wix/app.config.json — what getSiteInfo().siteId returns
-const WIX_SITE_ID = "56993fb3-9fa1-4615-9387-8180d9c04a7e";
+const WIX_SITE_ID = "dfef0816-5661-44f4-b13d-23c29369e5c1";
 
 interface WixContactEvent {
   entity?: {

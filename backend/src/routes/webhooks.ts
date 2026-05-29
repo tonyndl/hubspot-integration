@@ -7,7 +7,6 @@ import {
 import { webhookQueue, contactSyncQueue } from "../jobs/queue.js";
 import { getSupabase } from "../db/client.js";
 import { logger } from "../utils/logger.js";
-import { config } from "../config/index.js";
 
 export async function webhookRoutes(fastify: FastifyInstance) {
   // ── POST /api/webhooks/hubspot ──────────────────────────────────────────
@@ -67,6 +66,11 @@ export async function webhookRoutes(fastify: FastifyInstance) {
         );
         return reply.code(200).send({ ok: true }); // 200 to prevent HubSpot retries
       }
+
+      logger.info(
+        { portalId, wixSiteId: tokenRow.wix_site_id, events },
+        "HubSpot webhook raw payload",
+      );
 
       await webhookQueue.add(`hs-webhook-${portalId}-${Date.now()}`, {
         wixSiteId: tokenRow.wix_site_id,
