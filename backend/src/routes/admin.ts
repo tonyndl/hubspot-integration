@@ -96,6 +96,44 @@ export async function adminRoutes(fastify: FastifyInstance) {
     return reply.send({ ok: true, ...result });
   });
 
+  // GET /api/admin/test-wix — directly test Wix API auth and contact write
+  fastify.get("/api/admin/test-wix", async (_request, reply) => {
+    const { createWixClient } = await import("../services/wix/client.js");
+    const { config } = await import("../config/index.js");
+    const wixSiteId = config.WIX_META_SITE_ID ?? "unknown";
+    const client = createWixClient(wixSiteId);
+    const results: Record<string, unknown> = { wixSiteId };
+
+    // Test 1: read contacts (checks auth)
+    try {
+      const res = await client.post("/contacts/v4/contacts/query", {
+        query: { paging: { limit: 1 } },
+      });
+      results.readTest = { ok: true, count: (res.data as { contacts?: unknown[] }).contacts?.length ?? 0 };
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number; data?: unknown }; message?: string };
+      results.readTest = { ok: false, status: e.response?.status, body: e.response?.data, message: e.message };
+    }
+
+    // Test 2: write a contact (checks write permission)
+    try {
+      const res = await client.post<{ contact: { id: string } }>("/contacts/v4/contacts", {
+        info: {
+          name: { first: "WixWriteTest", last: "Diagnostic" },
+          emails: { items: [{ email: "wix-write-test-diagnostic@example.com", primary: true, tag: "UNTAGGED" }] },
+        },
+      });
+      results.writeTest = { ok: true, contactId: res.data.contact.id };
+      // clean up
+      await client.delete(`/contacts/v4/contacts/${res.data.contact.id}`).catch(() => null);
+    } catch (err: unknown) {
+      const e = err as { response?: { status?: number; data?: unknown }; message?: string };
+      results.writeTest = { ok: false, status: e.response?.status, body: e.response?.data, message: e.message };
+    }
+
+    return reply.send(results);
+  });
+
   // GET /api/admin/status — show site IDs stored in the DB (for diagnosing wrong-ID issues)
   fastify.get("/api/admin/status", async (_request, reply) => {
     const supabase = getSupabase();

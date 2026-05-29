@@ -9,10 +9,13 @@ import { logger } from "../utils/logger.js";
 function parseRedisUrl(url: string) {
   try {
     const u = new URL(url);
+    const tls = u.protocol === "rediss:" ? { rejectUnauthorized: false } : undefined;
     return {
       host: u.hostname || "localhost",
       port: parseInt(u.port, 10) || 6379,
       password: u.password || undefined,
+      username: u.username || undefined,
+      tls,
       maxRetriesPerRequest: null as null,
       enableReadyCheck: false,
     };
