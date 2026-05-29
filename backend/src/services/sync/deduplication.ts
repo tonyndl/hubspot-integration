@@ -15,9 +15,10 @@ export async function markIdempotencyKey(
   wixSiteId: string,
   key: string,
   result?: Record<string, unknown>,
+  ttlMs?: number,
 ): Promise<void> {
   const supabase = getSupabase();
-  const expiresAt = new Date(Date.now() + SYNC_DEDUP_WINDOW_MS * 2);
+  const expiresAt = new Date(Date.now() + (ttlMs ?? SYNC_DEDUP_WINDOW_MS * 2));
 
   await supabase.from("idempotency_keys").upsert(
     {
@@ -63,6 +64,16 @@ export function hubspotToWixKey(
   syncId: string,
 ) {
   return `hs:${wixSiteId}:${hubspotContactId}:${syncId}`;
+}
+
+// Stable per-event key for deduplicating duplicate HubSpot webhook deliveries.
+// Uses no syncId so all duplicate deliveries of the same event share the key.
+export function hsEventDedupKey(
+  wixSiteId: string,
+  hubspotContactId: string,
+  eventType: string,
+) {
+  return `hs-event:${wixSiteId}:${hubspotContactId}:${eventType}`;
 }
 
 // Sweep expired idempotency keys (run periodically)

@@ -22,6 +22,7 @@ import {
   markIdempotencyKey,
   wixToHubspotKey,
   hubspotToWixKey,
+  hsEventDedupKey,
 } from "./deduplication.js";
 import { logger } from "../../utils/logger.js";
 import { SyncError } from "../../utils/errors.js";
@@ -324,6 +325,18 @@ export async function syncHubSpotContactToWix(
   eventType: "contact_created" | "contact_updated",
   inboundSyncId?: string,
 ): Promise<void> {
+  // Block duplicate webhook deliveries (HubSpot often sends the same event 2-3x).
+  // Key is stable per contact+event — all duplicates share it; TTL 60s.
+  const eventKey = hsEventDedupKey(wixSiteId, hsPayload.contactId, eventType);
+  if (await checkIdempotencyKey(eventKey)) {
+    logger.debug(
+      { wixSiteId, hubspotContactId: hsPayload.contactId, eventType },
+      "Dedup: skipping duplicate HubSpot webhook delivery",
+    );
+    return;
+  }
+  await markIdempotencyKey(wixSiteId, eventKey, {}, 60_000);
+
   const syncId = uuidv4();
 
   // If the inbound event carries a sync_id we generated, it's our own echo — skip
